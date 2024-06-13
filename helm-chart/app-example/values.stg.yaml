@@ -8,7 +8,7 @@ image:
   repository: ichhoa129/app-test
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "hehe123"
+  tag: "hehe12345"
 
 imagePullSecrets: []
 nameOverride: ""
