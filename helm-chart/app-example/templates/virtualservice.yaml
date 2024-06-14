@@ -1,0 +1,29 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  hosts:
+  - app-example.app.svc.cluster.local 
+  - app.example.com
+  exportTo:
+  - "*"
+  gateways:
+  - appA-ingress-gateway.app.svc.cluster.local
+  - mesh
+  http:
+  - name: app-http-route
+    match:
+    - uri:
+        prefix: /
+    route:
+      - destination:
+          host: {{ .Release.Name }}-stable
+          port:
+            number: {{ .Values.service.port }}
+        weight: 100
+      - destination:
+          host: {{ .Release.Name }}-canary
+          port:
+            number: {{ .Values.service.port }}
+        weight: 0

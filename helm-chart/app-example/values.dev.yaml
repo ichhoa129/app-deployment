@@ -2,13 +2,13 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 1
+replicaCount: 10
 
 image:
   repository: ichhoa129/app-test
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "hehe"
+  tag: "latest-2"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -42,6 +42,7 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 3000
+  metric_port: 9090
 
 ingress:
   enabled: false
@@ -70,6 +71,19 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
+
+rollout:
+  steps:
+    - setWeight: 20
+    - pause: {}
+    - setWeight: 60
+    - pause: {duration: 1}
+    - setWeight: 80
+    - pause: {duration: 10}
+
+prometheus:
+  enabled: false
+  address: http://prometheus-operated.prometheus.svc.cluster.local:9090
 
 livenessProbe:
   httpGet:

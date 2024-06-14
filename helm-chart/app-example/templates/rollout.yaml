@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicas }}
+  strategy:
+    canary:
+      canaryService: {{ .Release.Name }}-canary
+      stableService: {{ .Release.Name }}-stable
+      steps: {{ .Values.rollout.steps }}
+      canaryMetadata:
+        labels:
+          deployment: canary
+      stableMetadata:
+        labels:
+          deployment: stable
+      trafficRouting:
+        istio:
+          virtualService:
+            name: {{ .Release.Name }}
+            routes:
+              - app-http-route
+      {{- if .Values.prometheus.enabled }}
+      analysis:
+        templates:
+          - templateName: {{ .Release.Name }}
+        startingStep: 2
+      {{- end }}
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels: *labels
+  template:
+    metadata:
+      labels:
+        app: *labels
+    spec:
+      containers:
+        - name: {{ .Release.Name }}
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            - name: metrics
+              containerPort: {{ .Values.service.metric_port }}
+              protocol: TCP
